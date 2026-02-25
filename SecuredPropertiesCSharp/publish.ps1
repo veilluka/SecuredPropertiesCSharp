@@ -11,7 +11,10 @@ param(
     [string]$Type = 'trimmed',
     
     [Parameter(Mandatory=$false)]
-    [string]$OutputFolder = "..\..\..\dist"
+    [string]$OutputFolder = "..\..\..\dist",
+
+    [Parameter(Mandatory=$false)]
+    [switch]$CreateRelease
 )
 
 $ErrorActionPreference = "Stop"
@@ -336,8 +339,108 @@ Write-Host ""
 Write-Host "Files ready for distribution:" -ForegroundColor Green
 Get-ChildItem -Path $outputPath -Filter "*.zip" | ForEach-Object {
     $size = [math]::Round($_.Length / 1MB, 2)
-    Write-Host "  • $($_.Name) ($size MB)" -ForegroundColor White
+    Write-Host "  - $($_.Name) ($size MB)" -ForegroundColor White
 }
 Write-Host ""
 Write-Host "You can now copy these ZIP files to other machines!" -ForegroundColor Cyan
 Write-Host ""
+
+# Create GitHub release if requested
+if ($CreateRelease) {
+    Write-Host "================================================================" -ForegroundColor Cyan
+    Write-Host "     Creating GitHub Release v$version                          " -ForegroundColor Cyan
+    Write-Host "================================================================" -ForegroundColor Cyan
+    Write-Host ""
+
+    # Check if gh CLI is available
+    if (!(Get-Command gh -ErrorAction SilentlyContinue)) {
+        Write-Host "[ERROR] GitHub CLI (gh) is not installed. Install from https://cli.github.com/" -ForegroundColor Red
+        exit 1
+    }
+
+    # Temporarily allow native command errors (gh writes to stderr)
+    $prevErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+
+    # Check if gh is authenticated
+    $authStatus = gh auth status 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[ERROR] GitHub CLI is not authenticated. Run: gh auth login" -ForegroundColor Red
+        $ErrorActionPreference = $prevErrorAction
+        exit 1
+    }
+
+    $tag = "v$version"
+
+    # Collect all zip files for upload
+    $zipFiles = Get-ChildItem -Path $outputPath -Filter "*.zip"
+    if ($zipFiles.Count -eq 0) {
+        Write-Host "[ERROR] No ZIP files found in $outputPath" -ForegroundColor Red
+        $ErrorActionPreference = $prevErrorAction
+        exit 1
+    }
+
+    Write-Host "Tag: $tag" -ForegroundColor Yellow
+    Write-Host "Assets:" -ForegroundColor Yellow
+    foreach ($z in $zipFiles) {
+        $size = [math]::Round($z.Length / 1MB, 2)
+        Write-Host "  - $($z.Name) ($size MB)" -ForegroundColor White
+    }
+    Write-Host ""
+
+    # Build release notes
+    $releaseNotes = @"
+## SecuredPropertiesCSharp v$version
+
+### Downloads
+Download the ZIP for your platform, extract, and run the executable. No installation or .NET runtime required.
+
+### Changes
+- DPAPI auto-decryption for secured properties (no -pass needed on same machine)
+- Password recovery from companion file or MASTER_PASSWORD entry
+- Verbose logging with -verbose flag
+- Version command: -version
+- Improved error messages for encrypted property access
+
+### Usage
+``````
+SecuredPropertiesCSharp -help
+SecuredPropertiesCSharp -version
+SecuredPropertiesCSharp -create config.properties -pass YourPassword123!
+SecuredPropertiesCSharp -getValue config.properties -key mykey -pass YourPassword123!
+``````
+"@
+
+    # Check if release already exists
+    $null = gh release view $tag 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "[WARN] Release $tag already exists. Deleting and recreating..." -ForegroundColor Yellow
+        $null = gh release delete $tag --yes 2>&1
+        # Also delete the tag if it exists
+        $null = git tag -d $tag 2>&1
+        $null = git push origin :refs/tags/$tag 2>&1
+    }
+
+    # Create the release with all zip files as assets
+    Write-Host "Creating release..." -ForegroundColor Yellow
+    $assetArgs = @()
+    foreach ($z in $zipFiles) {
+        $assetArgs += $z.FullName
+    }
+
+    gh release create $tag @assetArgs --title "SecuredPropertiesCSharp v$version" --notes $releaseNotes
+
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host ""
+        Write-Host "[OK] GitHub Release v$version created successfully!" -ForegroundColor Green
+        $repoUrl = gh repo view --json url -q ".url" 2>&1
+        Write-Host "  URL: $repoUrl/releases/tag/$tag" -ForegroundColor Yellow
+    } else {
+        Write-Host "[ERROR] Failed to create GitHub release" -ForegroundColor Red
+        $ErrorActionPreference = $prevErrorAction
+        exit 1
+    }
+
+    $ErrorActionPreference = $prevErrorAction
+    Write-Host ""
+}
