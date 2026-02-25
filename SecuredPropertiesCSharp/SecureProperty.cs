@@ -225,7 +225,7 @@ namespace SecuredPropertiesCSharp
     /// <summary>
     /// LinkedHashSet implementation that maintains insertion order
     /// </summary>
-    public class LinkedHashSet<T> : ICollection<T>
+    public class LinkedHashSet<T> : ICollection<T> where T : notnull
     {
         private readonly Dictionary<T, LinkedListNode<T>> _dict;
         private readonly LinkedList<T> _list;

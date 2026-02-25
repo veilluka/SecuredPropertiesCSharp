@@ -15,9 +15,9 @@ param(
 $ErrorActionPreference = "Stop"
 
 Write-Host ""
-Write-Host "╔═══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║     SecuredPropertiesCSharp - Library Builder                ║" -ForegroundColor Cyan
-Write-Host "╚═══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "==================================================================" -ForegroundColor Cyan
+Write-Host "     SecuredPropertiesCSharp - Library Builder                 " -ForegroundColor Cyan
+Write-Host "==================================================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Get version
@@ -52,11 +52,11 @@ Write-Host "Building library..." -ForegroundColor Green
 dotnet build -c $Configuration
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "✗ Build failed!" -ForegroundColor Red
+    Write-Host "[FAIL] Build failed!" -ForegroundColor Red
     exit 1
 }
 
-Write-Host "✓ Build successful!" -ForegroundColor Green
+Write-Host "[OK] Build successful!" -ForegroundColor Green
 Write-Host ""
 
 # Copy DLL to output folder
@@ -67,20 +67,20 @@ $xmlPath = "bin\$Configuration\net10.0\SecuredPropertiesCSharp.xml"
 
 if (Test-Path $dllPath) {
     Copy-Item $dllPath -Destination $outputPath -Force
-    Write-Host "✓ Copied: SecuredPropertiesCSharp.dll" -ForegroundColor Green
+    Write-Host "[OK] Copied: SecuredPropertiesCSharp.dll" -ForegroundColor Green
     
     $dllSize = (Get-Item $dllPath).Length
     $dllSizeKB = [math]::Round($dllSize / 1KB, 2)
     Write-Host "  Size: $dllSizeKB KB" -ForegroundColor Gray
 } else {
-    Write-Host "✗ DLL not found!" -ForegroundColor Red
+    Write-Host "[FAIL] DLL not found!" -ForegroundColor Red
     exit 1
 }
 
 # Copy XML documentation if exists
 if (Test-Path $xmlPath) {
     Copy-Item $xmlPath -Destination $outputPath -Force
-    Write-Host "✓ Copied: SecuredPropertiesCSharp.xml (IntelliSense documentation)" -ForegroundColor Green
+    Write-Host "[OK] Copied: SecuredPropertiesCSharp.xml (IntelliSense documentation)" -ForegroundColor Green
 }
 
 Write-Host ""
@@ -94,10 +94,10 @@ if ($CreateNuGet) {
         $nupkgFile = Get-ChildItem -Path $outputPath -Filter "*.nupkg" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
         if ($nupkgFile) {
             $nupkgSize = [math]::Round($nupkgFile.Length / 1KB, 2)
-            Write-Host "✓ NuGet package created: $($nupkgFile.Name) ($nupkgSize KB)" -ForegroundColor Green
+            Write-Host "[OK] NuGet package created: $($nupkgFile.Name) ($nupkgSize KB)" -ForegroundColor Green
         }
     } else {
-        Write-Host "✗ NuGet package creation failed!" -ForegroundColor Red
+        Write-Host "[FAIL] NuGet package creation failed!" -ForegroundColor Red
     }
     Write-Host ""
 }
@@ -148,7 +148,7 @@ Console.WriteLine(`$"Password valid: {isValid}");
 
 $examplePath = Join-Path $outputPath "USAGE-EXAMPLE.cs"
 Set-Content -Path $examplePath -Value $exampleContent
-Write-Host "✓ Created: USAGE-EXAMPLE.cs" -ForegroundColor Green
+Write-Host "[OK] Created: USAGE-EXAMPLE.cs" -ForegroundColor Green
 
 # Create README for library users
 $readmeContent = @"
@@ -244,13 +244,13 @@ The DLL includes XML documentation for IntelliSense support.
 
 ## Features
 
-- ✅ AES-256-CBC encryption
-- ✅ PBKDF2 password hashing (500,000 iterations)
-- ✅ Master password protection
-- ✅ Hierarchical property keys
-- ✅ Mix encrypted/unencrypted properties
-- ✅ Secure memory handling
-- ✅ No external dependencies
+- AES-256-CBC encryption
+- PBKDF2 password hashing (500,000 iterations)
+- Master password protection
+- Hierarchical property keys
+- Mix encrypted/unencrypted properties
+- Secure memory handling
+- No external dependencies
 
 ## License
 
@@ -262,12 +262,12 @@ Built with .NET 8.0
 
 $readmePath = Join-Path $outputPath "README.md"
 Set-Content -Path $readmePath -Value $readmeContent
-Write-Host "✓ Created: README.md" -ForegroundColor Green
+Write-Host "[OK] Created: README.md" -ForegroundColor Green
 
 Write-Host ""
-Write-Host "╔═══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║                Library Build Complete!                       ║" -ForegroundColor Cyan
-Write-Host "╚═══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "==================================================================" -ForegroundColor Cyan
+Write-Host "                Library Build Complete!                        " -ForegroundColor Cyan
+Write-Host "==================================================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Library files created in:" -ForegroundColor Green
 Write-Host "  $outputPath" -ForegroundColor Yellow
@@ -275,7 +275,7 @@ Write-Host ""
 Write-Host "Files:" -ForegroundColor Green
 Get-ChildItem -Path $outputPath -File | ForEach-Object {
     $size = [math]::Round($_.Length / 1KB, 2)
-    Write-Host "  • $($_.Name) ($size KB)" -ForegroundColor White
+    Write-Host "  - $($_.Name) ($size KB)" -ForegroundColor White
 }
 Write-Host ""
 Write-Host "To use in your project:" -ForegroundColor Cyan

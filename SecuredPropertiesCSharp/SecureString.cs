@@ -74,10 +74,10 @@ namespace SecuredPropertiesCSharp
             return output.ToString().Replace("\\s", " ");
         }
 
-        public char[] CleanInvalidCharacters(char[] input)
+        public char[] CleanInvalidCharacters(char[]? input)
         {
             if (input == null || input.Length == 0)
-                return input;
+                return input ?? Array.Empty<char>();
 
             var output = new StringBuilder();
 

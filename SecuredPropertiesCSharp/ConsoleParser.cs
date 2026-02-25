@@ -67,8 +67,14 @@ namespace SecuredPropertiesCSharp
             Console.WriteLine("COMMANDS:");
             Console.WriteLine();
             Console.WriteLine("  Storage Management:");
+            Console.WriteLine("    -init <file>             Initialize secured properties (create or open)");
+            Console.WriteLine("                             Creates file with auto-generated password if new.");
+            Console.WriteLine("                             Opens existing file, handles user re-encryption");
+            Console.WriteLine("                             and {ENC} property processing automatically.");
+            Console.WriteLine("                             Password saved to master_password_plain_text_store_and_delete.txt");
+            Console.WriteLine();
             Console.WriteLine("    -create <file>           Create a new secure storage file");
-            Console.WriteLine("                             Use with: -pass <password> (required for secured)");
+            Console.WriteLine("                             Use with: -pass <password> (optional, auto-generated if omitted)");
             Console.WriteLine("                                      -unsecured (create without encryption)");
             Console.WriteLine();
             Console.WriteLine("    -print <file>            Display all properties in the storage");
@@ -91,6 +97,7 @@ namespace SecuredPropertiesCSharp
             Console.WriteLine();
             Console.WriteLine("  Utilities:");
             Console.WriteLine("    -generatePassword        Generate a random secure password");
+            Console.WriteLine("    -version                 Display version information");
             Console.WriteLine("    -help                    Display this help message");
             Console.WriteLine();
             Console.WriteLine("OPTIONS:");
@@ -98,6 +105,7 @@ namespace SecuredPropertiesCSharp
             Console.WriteLine("    -value <value>           Property value");
             Console.WriteLine("    -pass <password>         Master password (min 12 characters for new storage)");
             Console.WriteLine("    -unsecured               Create/open storage without encryption");
+            Console.WriteLine("    -verbose                 Enable verbose/debug logging to stderr");
             Console.WriteLine();
             Console.WriteLine("═══════════════════════════════════════════════════════════════════════════");
             Console.WriteLine();
@@ -131,6 +139,9 @@ namespace SecuredPropertiesCSharp
             Console.WriteLine("  8. Generate a random password:");
             Console.WriteLine("     SecuredPropertiesCSharp -generatePassword");
             Console.WriteLine();
+            Console.WriteLine("  9. Initialize secured properties (create or open):");
+            Console.WriteLine("     SecuredPropertiesCSharp -init myconfig.properties");
+            Console.WriteLine();
             Console.WriteLine("═══════════════════════════════════════════════════════════════════════════");
             Console.WriteLine();
             Console.WriteLine("NOTES:");
@@ -138,6 +149,8 @@ namespace SecuredPropertiesCSharp
             Console.WriteLine("  • Secured storage requires a master password of at least 12 characters");
             Console.WriteLine("  • Encrypted properties are marked with {ENC} in the properties file");
             Console.WriteLine("  • If no value is provided for addSecured, a random password is generated");
+            Console.WriteLine("  • -init auto-generates password and saves to companion .txt file");
+            Console.WriteLine("  • If file was encrypted by another user, add MASTER_PASSWORD=XXX to the file");
             Console.WriteLine();
             Console.WriteLine("═══════════════════════════════════════════════════════════════════════════");
             Console.WriteLine();

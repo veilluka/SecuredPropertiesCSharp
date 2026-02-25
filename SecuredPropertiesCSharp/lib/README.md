@@ -1,6 +1,6 @@
 # SecuredPropertiesCSharp Library
 
-Version: 1.0.0
+Version: 1.1.0
 
 ## Installation
 
@@ -90,13 +90,13 @@ The DLL includes XML documentation for IntelliSense support.
 
 ## Features
 
-- ✅ AES-256-CBC encryption
-- ✅ PBKDF2 password hashing (500,000 iterations)
-- ✅ Master password protection
-- ✅ Hierarchical property keys
-- ✅ Mix encrypted/unencrypted properties
-- ✅ Secure memory handling
-- ✅ No external dependencies
+- AES-256-CBC encryption
+- PBKDF2 password hashing (500,000 iterations)
+- Master password protection
+- Hierarchical property keys
+- Mix encrypted/unencrypted properties
+- Secure memory handling
+- No external dependencies
 
 ## License
 
