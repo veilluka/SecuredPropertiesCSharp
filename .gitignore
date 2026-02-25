@@ -1,0 +1,27 @@
+# Build results
+bin/
+obj/
+lib/*.dll
+lib/*.pdb
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+*.csproj.user
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# Test files
+*.properties
+example.bat
+example.sh
+myconfig.properties
+test*.properties
+config.properties
