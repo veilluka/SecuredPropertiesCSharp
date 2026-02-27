@@ -49,7 +49,32 @@ try {
 
 # Build the library
 Write-Host "Building library..." -ForegroundColor Green
-dotnet build -c $Configuration
+
+# Try to find MSBuild (Visual Studio installation)
+$msbuildPaths = @(
+    "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe",
+    "${env:ProgramFiles}\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\MSBuild.exe",
+    "${env:ProgramFiles}\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe",
+    "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe",
+    "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\Professional\MSBuild\Current\Bin\MSBuild.exe",
+    "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe"
+)
+
+$msbuildPath = $null
+foreach ($path in $msbuildPaths) {
+    if (Test-Path $path) {
+        $msbuildPath = $path
+        break
+    }
+}
+
+if ($msbuildPath) {
+    Write-Host "Using MSBuild: $msbuildPath" -ForegroundColor Gray
+    & $msbuildPath SecuredPropertiesCSharp.csproj -p:Configuration=$Configuration -p:Platform="Any CPU"
+} else {
+    Write-Host "MSBuild not found, trying dotnet build..." -ForegroundColor Yellow
+    dotnet build -c $Configuration
+}
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[FAIL] Build failed!" -ForegroundColor Red
@@ -62,8 +87,8 @@ Write-Host ""
 # Copy DLL to output folder
 Write-Host "Copying library files..." -ForegroundColor Yellow
 
-$dllPath = "bin\$Configuration\net10.0\SecuredPropertiesCSharp.dll"
-$xmlPath = "bin\$Configuration\net10.0\SecuredPropertiesCSharp.xml"
+$dllPath = "bin\$Configuration\net48\SecuredPropertiesCSharp.dll"
+$xmlPath = "bin\$Configuration\net48\SecuredPropertiesCSharp.xml"
 
 if (Test-Path $dllPath) {
     Copy-Item $dllPath -Destination $outputPath -Force
@@ -124,10 +149,10 @@ var masterPassword = new SecureString("YourSecurePassword123!");
 SecStorage.CreateNewSecureStorage("myconfig.properties", masterPassword, createSecured: true);
 
 var storage = SecStorage.OpenSecuredStorage("myconfig.properties", masterPassword);
-storage.AddUnsecuredProperty("app@@name", "MyApp");
-storage.AddSecuredProperty("app@@api@@key", new SecureString("secret-key-123"));
+storage.AddUnsecuredProperty("app.name", "MyApp");
+storage.AddSecuredProperty("app.api.key", new SecureString("secret-key-123"));
 
-var apiKey = storage.GetPropertyValue("app@@api@@key");
+var apiKey = storage.GetPropertyValue("app.api.key");
 Console.WriteLine(`$"API Key: {apiKey}");
 
 SecStorage.Destroy();
@@ -198,8 +223,8 @@ var masterPass = new SecureString("MasterPassword123!");
 SecStorage.CreateNewSecureStorage("config.properties", masterPass, true);
 
 var storage = SecStorage.OpenSecuredStorage("config.properties", masterPass);
-storage.AddSecuredProperty("api@@key", new SecureString("my-secret-key"));
-var apiKey = storage.GetPropertyValue("api@@key");
+storage.AddSecuredProperty("api.key", new SecureString("my-secret-key"));
+var apiKey = storage.GetPropertyValue("api.key");
 
 SecStorage.Destroy();
 ``````
@@ -219,7 +244,7 @@ SecStorage.Destroy();
 ### SecureProperties
 - **Mid-level API**: Property collection management
 - **File I/O**: Read/write .properties files
-- **Hierarchical keys**: Support for @@ separator
+- **Hierarchical keys**: Support for . separator
 
 ### SecureProperty
 - **Low-level API**: Individual property management
@@ -235,8 +260,8 @@ See ``USAGE-EXAMPLE.cs`` for complete examples.
 
 ## Requirements
 
-- .NET 8.0 or later
-- Target Framework: net10.0
+- .NET Framework 4.8 or later
+- Target Framework: net48
 
 ## Documentation
 
@@ -257,7 +282,7 @@ The DLL includes XML documentation for IntelliSense support.
 See main project repository for license information.
 
 ---
-Built with .NET 8.0
+Built with .NET Framework 4.8
 "@
 
 $readmePath = Join-Path $outputPath "README.md"

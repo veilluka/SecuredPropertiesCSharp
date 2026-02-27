@@ -46,10 +46,10 @@ SecuredPropertiesCSharp.exe -generatePassword
 SecuredPropertiesCSharp.exe -create myconfig.properties -pass MyPassword123!
 
 # Add encrypted property
-SecuredPropertiesCSharp.exe -addSecured myconfig.properties -key app@@api@@key -value secret123 -pass MyPassword123!
+SecuredPropertiesCSharp.exe -addSecured myconfig.properties -key app.api.key -value secret123 -pass MyPassword123!
 
 # Get value
-SecuredPropertiesCSharp.exe -getValue myconfig.properties -key app@@api@@key -pass MyPassword123!
+SecuredPropertiesCSharp.exe -getValue myconfig.properties -key app.api.key -pass MyPassword123!
 
 # Print all
 SecuredPropertiesCSharp.exe -print myconfig.properties

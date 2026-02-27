@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -18,14 +19,11 @@ namespace SecuredPropertiesCSharp
         /// </summary>
         public string Hash(char[] password, byte[] salt)
         {
-            byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
-                new string(password), 
-                salt, 
-                Iterations, 
-                HashAlgorithmName.SHA256,
-                DesiredKeyLen / 8);
-            
-            return Convert.ToBase64String(hash);
+            using (var pbkdf2 = new Rfc2898DeriveBytes(new string(password), salt, Iterations, HashAlgorithmName.SHA256))
+            {
+                byte[] hash = pbkdf2.GetBytes(DesiredKeyLen / 8);
+                return Convert.ToBase64String(hash);
+            }
         }
 
         /// <summary>
@@ -33,7 +31,8 @@ namespace SecuredPropertiesCSharp
         /// </summary>
         public string GetSaltedHash(char[] password)
         {
-            byte[] salt = RandomNumberGenerator.GetBytes(SaltLen);
+            byte[] salt = new byte[SaltLen];
+            new Random().NextBytes(salt);
             return Convert.ToBase64String(salt) + "$" + Hash(password, salt);
         }
 
@@ -58,12 +57,10 @@ namespace SecuredPropertiesCSharp
         /// </summary>
         private byte[] GetKeyFromPassword(string password, byte[] salt)
         {
-            return Rfc2898DeriveBytes.Pbkdf2(
-                password, 
-                salt, 
-                Iterations, 
-                HashAlgorithmName.SHA256,
-                DesiredKeyLen / 8);
+            using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256))
+            {
+                return pbkdf2.GetBytes(DesiredKeyLen / 8);
+            }
         }
 
         /// <summary>
@@ -71,7 +68,9 @@ namespace SecuredPropertiesCSharp
         /// </summary>
         private byte[] GenerateIv()
         {
-            return RandomNumberGenerator.GetBytes(16);
+            byte[] iv = new byte[16];
+            new Random().NextBytes(iv);
+            return iv;
         }
 
         /// <summary>
@@ -80,7 +79,8 @@ namespace SecuredPropertiesCSharp
         public string Encrypt(string clearText, string key)
         {
             // Generate a random salt
-            byte[] salt = RandomNumberGenerator.GetBytes(SaltLen);
+            byte[] salt = new byte[SaltLen];
+            new Random().NextBytes(salt);
             
             // Derive a key using the password and the random salt
             byte[] keyBytes = GetKeyFromPassword(key, salt);
@@ -126,20 +126,22 @@ namespace SecuredPropertiesCSharp
             
             var password = new List<char>();
             
+            var random = new Random();
+            
             for (int i = 0; i < upperCase; i++)
-                password.Add(uppercaseChars[RandomNumberGenerator.GetInt32(uppercaseChars.Length)]);
+                password.Add(uppercaseChars[random.Next(uppercaseChars.Length)]);
             
             for (int i = 0; i < lowerCase; i++)
-                password.Add(lowercaseChars[RandomNumberGenerator.GetInt32(lowercaseChars.Length)]);
+                password.Add(lowercaseChars[random.Next(lowercaseChars.Length)]);
             
             for (int i = 0; i < numbers; i++)
-                password.Add(numberChars[RandomNumberGenerator.GetInt32(numberChars.Length)]);
+                password.Add(numberChars[random.Next(numberChars.Length)]);
             
             for (int i = 0; i < symbols; i++)
-                password.Add(symbolChars[RandomNumberGenerator.GetInt32(symbolChars.Length)]);
+                password.Add(symbolChars[random.Next(symbolChars.Length)]);
             
             // Shuffle the password characters
-            return new string(password.OrderBy(_ => RandomNumberGenerator.GetInt32(int.MaxValue)).ToArray());
+            return new string(password.OrderBy(_ => random.Next()).ToArray());
         }
 
         /// <summary>

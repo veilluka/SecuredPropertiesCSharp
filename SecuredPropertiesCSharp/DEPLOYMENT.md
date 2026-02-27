@@ -84,7 +84,7 @@ SecuredPropertiesCSharp.exe -generatePassword
 SecuredPropertiesCSharp.exe -create config.properties -pass MyPassword123!
 
 # Add property
-SecuredPropertiesCSharp.exe -addSecured config.properties -key api@@key -value secret -pass MyPassword123!
+SecuredPropertiesCSharp.exe -addSecured config.properties -key api.key -value secret -pass MyPassword123!
 ```
 
 ## Distribution

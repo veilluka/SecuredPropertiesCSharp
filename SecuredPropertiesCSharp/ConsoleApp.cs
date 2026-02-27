@@ -163,7 +163,7 @@ namespace SecuredPropertiesCSharp
                 
                 foreach (var key in map.Keys.OrderBy(x => x))
                 {
-                    var prop = secStorage.GetProperty(string.IsNullOrEmpty(label) ? key : $"{label}@@{key}");
+                    var prop = secStorage.GetProperty(string.IsNullOrEmpty(label) ? key : $"{label}.{key}");
                     var marker = prop?.IsEncrypted == true ? "[ENCRYPTED]" : "[PLAIN]    ";
                     Console.WriteLine($"  {marker} {key} = {map[key]}");
                 }

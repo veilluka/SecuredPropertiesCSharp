@@ -11,10 +11,10 @@ namespace SecuredPropertiesCSharp
     public class SecStorage
     {
         // Storage constants
-        public const string TEST_STRING = "STORAGE@@WINDOWS_SECURED";
-        public const string MASTER_PASSWORD_WIN_SECURED = "STORAGE@@MASTER_PASSWORD_WINDOWS_SECURED";
-        public const string MASTER_PASSWORD_HASH = "STORAGE@@MASTER_PASSWORD_HASH";
-        public const string ENC_VERSION = "STORAGE@@ENC_VERSION";
+        public const string TEST_STRING = "STORAGE.WINDOWS_SECURED";
+        public const string MASTER_PASSWORD_WIN_SECURED = "STORAGE.MASTER_PASSWORD_WINDOWS_SECURED";
+        public const string MASTER_PASSWORD_HASH = "STORAGE.MASTER_PASSWORD_HASH";
+        public const string ENC_VERSION = "STORAGE.ENC_VERSION";
 
         // Password file constants
         public const string PASSWORD_FILE_NAME = "master_password_plain_text_store_and_delete.txt";
@@ -70,7 +70,7 @@ namespace SecuredPropertiesCSharp
             _storage.AddUnsecuredProperty(MASTER_PASSWORD_HASH, saltedHash);
 
             // Add Windows DPAPI encryption if supported
-            if (OperatingSystem.IsWindows())
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
                 try
                 {
@@ -118,7 +118,7 @@ namespace SecuredPropertiesCSharp
             Log.Info("Master key check OK");
 
             // Try to use Windows DPAPI if available
-            if (OperatingSystem.IsWindows())
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
                 try
                 {
@@ -162,7 +162,7 @@ namespace SecuredPropertiesCSharp
             }
 
             // Try Windows DPAPI first if the file has a DPAPI-encrypted master password
-            var isWindows = OperatingSystem.IsWindows();
+            var isWindows = Environment.OSVersion.Platform == PlatformID.Win32NT;
             var hasDpapiProp = _storage.HasProperty(MASTER_PASSWORD_WIN_SECURED);
             Log.Info($"IsWindows={isWindows}, HasDPAPI_Property={hasDpapiProp}");
 
@@ -602,7 +602,7 @@ namespace SecuredPropertiesCSharp
             // File exists - try to open
 
             // Try Windows DPAPI first
-            if (OperatingSystem.IsWindows())
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
                 try
                 {
@@ -734,7 +734,7 @@ namespace SecuredPropertiesCSharp
         /// </summary>
         private static bool IsWindowsSupported()
         {
-            return OperatingSystem.IsWindows();
+            return Environment.OSVersion.Platform == PlatformID.Win32NT;
         }
 
         /// <summary>
@@ -759,7 +759,7 @@ namespace SecuredPropertiesCSharp
         /// </summary>
         public static bool IsSecuredWithCurrentUser(string fileName)
         {
-            if (!OperatingSystem.IsWindows()) return false;
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT) return false;
 
             try
             {
@@ -779,7 +779,7 @@ namespace SecuredPropertiesCSharp
         /// </summary>
         public static SecStorage OpenSecuredStorageWithWindows(string fileName)
         {
-            if (!OperatingSystem.IsWindows())
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
             {
                 throw new SecureStorageException(NOT_WINDOWS_SUPPORTED);
             }
@@ -803,7 +803,6 @@ namespace SecuredPropertiesCSharp
         /// <summary>
         /// Add Windows DPAPI encryption for the master password
         /// </summary>
-        [SupportedOSPlatform("windows")]
         private void AddWindowsCheck(SecureString masterPassword)
         {
             if (!IsWindowsSupported())
@@ -838,7 +837,6 @@ namespace SecuredPropertiesCSharp
         /// <summary>
         /// Check Windows DPAPI security by decrypting the test value
         /// </summary>
-        [SupportedOSPlatform("windows")]
         private void CheckWindowsSecurity()
         {
             Log.Info("CheckWindowsSecurity: starting...");
@@ -852,7 +850,7 @@ namespace SecuredPropertiesCSharp
             var encrypted = _secureProperties.GetProperty(TEST_STRING);
             if (encrypted == null)
             {
-                Log.Info("CheckWindowsSecurity: TEST_STRING (STORAGE@@WINDOWS_SECURED) not found");
+                Log.Info("CheckWindowsSecurity: TEST_STRING (STORAGE.WINDOWS_SECURED) not found");
                 throw new SecureStorageException("Windows check key missing");
             }
             Log.Info($"CheckWindowsSecurity: test string found, encrypted={encrypted.IsEncrypted}, value length={encrypted.Value?.Length}");

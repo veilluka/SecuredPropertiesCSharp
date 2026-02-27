@@ -16,10 +16,10 @@ var masterPassword = new SecureString("YourSecurePassword123!");
 SecStorage.CreateNewSecureStorage("myconfig.properties", masterPassword, createSecured: true);
 
 var storage = SecStorage.OpenSecuredStorage("myconfig.properties", masterPassword);
-storage.AddUnsecuredProperty("app@@name", "MyApp");
-storage.AddSecuredProperty("app@@api@@key", new SecureString("secret-key-123"));
+storage.AddUnsecuredProperty("app.name", "MyApp");
+storage.AddSecuredProperty("app.api.key", new SecureString("secret-key-123"));
 
-var apiKey = storage.GetPropertyValue("app@@api@@key");
+var apiKey = storage.GetPropertyValue("app.api.key");
 Console.WriteLine($"API Key: {apiKey}");
 
 SecStorage.Destroy();

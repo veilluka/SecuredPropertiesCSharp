@@ -27,6 +27,18 @@ Write-Host "  Version: $version" -ForegroundColor White
 Write-Host "  Runtime: $Runtime" -ForegroundColor White
 Write-Host ""
 
+# Backup original project file
+$csprojBackup = $csproj + ".backup"
+Copy-Item $csproj $csprojBackup
+
+# Temporarily change to executable for single-file build
+Write-Host "Temporarily configuring project as executable..." -ForegroundColor Yellow
+$csprojContent = Get-Content $csproj -Raw
+$csprojContent = $csprojContent -replace '<OutputType>Library</OutputType>', '<OutputType>Exe</OutputType>'
+$csprojContent = $csprojContent -replace 'net48', 'net8.0'  # Use .NET 8.0 for self-contained executable
+$csprojContent = $csprojContent -replace '<Compile Remove="Program.cs" />', ''  # Include Program.cs for executable
+Set-Content $csproj -Value $csprojContent
+
 # Clean if requested
 if ($Clean) {
     Write-Host "Cleaning previous builds..." -ForegroundColor Yellow
@@ -55,7 +67,7 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-$publishPath = "bin\Release\net10.0\$Runtime\publish"
+$publishPath = "bin\Release\net8.0\$Runtime\publish"
 if ($Runtime.StartsWith('win')) {
     $exeName = "SecuredPropertiesCSharp.exe"
 } else {
@@ -88,8 +100,17 @@ if (Test-Path $exePath) {
             }
         }
     }
+    
+    # Restore original project file
+    Write-Host "Restoring original project configuration..." -ForegroundColor Yellow
+    Move-Item $csprojBackup $csproj -Force
+    Write-Host "[OK] Project restored to library configuration" -ForegroundColor Green
 } else {
     Write-Host "[FAIL] Executable not found at: $exePath" -ForegroundColor Red
+    # Restore backup on failure
+    if (Test-Path $csprojBackup) {
+        Move-Item $csprojBackup $csproj -Force
+    }
     exit 1
 }
 

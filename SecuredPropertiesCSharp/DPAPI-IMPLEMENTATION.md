@@ -8,18 +8,18 @@ The C# version of Secured Properties now implements Windows Data Protection API 
 
 ### Security Model
 
-1. **Master Password Hash** (`STORAGE@@MASTER_PASSWORD_HASH`)
+1. **Master Password Hash** (`STORAGE.MASTER_PASSWORD_HASH`)
    - Salted hash of the master password using PBKDF2-HMAC-SHA256
    - Used to verify the correctness of the entered password
    - 500,000 iterations for key derivation
 
-2. **Windows DPAPI Encryption** (`STORAGE@@MASTER_PASSWORD_WINDOWS_SECURED`)
+2. **Windows DPAPI Encryption** (`STORAGE.MASTER_PASSWORD_WINDOWS_SECURED`)
    - Master password encrypted using Windows DPAPI (`ProtectedData.Protect`)
    - Tied to the current Windows user account
    - Only decryptable by the same user on the same machine
    - Uses `DataProtectionScope.CurrentUser`
 
-3. **Verification Test** (`STORAGE@@WINDOWS_SECURED`)
+3. **Verification Test** (`STORAGE.WINDOWS_SECURED`)
    - Contains an encrypted test string
    - Used to verify that DPAPI decryption works correctly
    - Ensures the file was encrypted by the current user
@@ -33,10 +33,10 @@ The C# version of Secured Properties now implements Windows Data Protection API 
 
 ```
 -------------------------------@@HEADER_START@@-------------------------------------------------------------
-STORAGE@@MASTER_PASSWORD_HASH=<salt>$<hash>
-STORAGE@@MASTER_PASSWORD_WINDOWS_SECURED={ENC}<dpapi-encrypted-password>{ENC}
-STORAGE@@WINDOWS_SECURED={ENC}<encrypted-test-value>{ENC}
-STORAGE@@ENC_VERSION=2
+STORAGE.MASTER_PASSWORD_HASH=<salt>$<hash>
+STORAGE.MASTER_PASSWORD_WINDOWS_SECURED={ENC}<dpapi-encrypted-password>{ENC}
+STORAGE.WINDOWS_SECURED={ENC}<encrypted-test-value>{ENC}
+STORAGE.ENC_VERSION=2
 -------------------------------@@HEADER_END@@-------------------------------------------------------------
 myProperty=plaintext
 mySecretProperty={ENC}<encrypted-value>{ENC}
@@ -83,7 +83,7 @@ SecuredPropertiesCSharp.exe -getValue myStorage.properties -key "apiKey" -useWin
 ```
 
 This would use the `OpenSecuredStorageWithWindows()` method which:
-1. Reads `STORAGE@@MASTER_PASSWORD_WINDOWS_SECURED`
+1. Reads `STORAGE.MASTER_PASSWORD_WINDOWS_SECURED`
 2. Decrypts it using Windows DPAPI (no password needed)
 3. Uses the recovered master password to decrypt properties
 
@@ -93,8 +93,8 @@ This would use the `OpenSecuredStorageWithWindows()` method which:
 
 1. **`AddWindowsCheck(SecureString masterPassword)`**
    - Encrypts master password using `ProtectedData.Protect`
-   - Stores encrypted password in `STORAGE@@MASTER_PASSWORD_WINDOWS_SECURED`
-   - Encrypts and stores test value in `STORAGE@@WINDOWS_SECURED`
+   - Stores encrypted password in `STORAGE.MASTER_PASSWORD_WINDOWS_SECURED`
+   - Encrypts and stores test value in `STORAGE.WINDOWS_SECURED`
 
 2. **`CheckWindowsSecurity()`**
    - Decrypts master password using `ProtectedData.Unprotect`
@@ -157,8 +157,8 @@ To verify DPAPI implementation:
    ```
 
 2. Verify the file contains:
-   - `STORAGE@@MASTER_PASSWORD_WINDOWS_SECURED`
-   - `STORAGE@@WINDOWS_SECURED`
+   - `STORAGE.MASTER_PASSWORD_WINDOWS_SECURED`
+   - `STORAGE.WINDOWS_SECURED`
 
 3. Add and retrieve encrypted properties:
    ```bash

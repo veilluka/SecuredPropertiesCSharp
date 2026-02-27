@@ -44,6 +44,11 @@ Write-Host "Version: $version" -ForegroundColor Yellow
 Write-Host "Output: $outputPath" -ForegroundColor Yellow
 Write-Host ""
 
+# Backup original project file
+$csproj = Join-Path $PSScriptRoot "SecuredPropertiesCSharp.csproj"
+$csprojBackup = $csproj + ".backup"
+Copy-Item $csproj $csprojBackup
+
 function Publish-For-Runtime {
     param(
         [string]$RuntimeId,
@@ -53,6 +58,14 @@ function Publish-For-Runtime {
     Write-Host "================================================================" -ForegroundColor Green
     Write-Host "Publishing for: $RuntimeId ($BuildType)" -ForegroundColor Green
     Write-Host "================================================================" -ForegroundColor Green
+    
+    # Temporarily change to executable for publishing
+    Write-Host "Temporarily configuring project as executable..." -ForegroundColor Yellow
+    $csprojContent = Get-Content $csproj -Raw
+    $csprojContent = $csprojContent -replace '<OutputType>Library</OutputType>', '<OutputType>Exe</OutputType>'
+    $csprojContent = $csprojContent -replace 'net48', 'net8.0'  # Use .NET 8.0 for self-contained publishing
+    $csprojContent = $csprojContent -replace '<Compile Remove="Program.cs" />', ''  # Include Program.cs for executable
+    Set-Content $csproj -Value $csprojContent
     
     # Clean previous builds (skip if locked)
     Write-Host "Cleaning..." -ForegroundColor Yellow
@@ -97,7 +110,7 @@ function Publish-For-Runtime {
         "SecuredPropertiesCSharp" 
     }
     
-    $publishPath = "bin\Release\net10.0\$RuntimeId\publish"
+    $publishPath = "bin\Release\net8.0\$RuntimeId\publish"
     $exePath = Join-Path $publishPath $exeName
     
     if (!(Test-Path $exePath)) {
@@ -150,17 +163,17 @@ $exeName -create myconfig.properties -pass YourPassword123!
 
 Add an encrypted property:
 ``````
-$exeName -addSecured myconfig.properties -key app@@api@@key -value secret123 -pass YourPassword123!
+$exeName -addSecured myconfig.properties -key app.api.key -value secret123 -pass YourPassword123!
 ``````
 
 Add an unencrypted property:
 ``````
-$exeName -addUnsecured myconfig.properties -key app@@name -value MyApp
+$exeName -addUnsecured myconfig.properties -key app.name -value MyApp
 ``````
 
 Get a property value:
 ``````
-$exeName -getValue myconfig.properties -key app@@api@@key -pass YourPassword123!
+$exeName -getValue myconfig.properties -key app.api.key -pass YourPassword123!
 ``````
 
 Print all properties:
@@ -170,7 +183,7 @@ $exeName -print myconfig.properties
 
 Delete a property:
 ``````
-$exeName -delete myconfig.properties -key app@@api@@key -pass YourPassword123!
+$exeName -delete myconfig.properties -key app.api.key -pass YourPassword123!
 ``````
 
 Show help:
@@ -181,7 +194,7 @@ $exeName -help
 ## Features
 
 - Password-based encryption using AES-256
-- Hierarchical property keys (use @@ as separator)
+- Hierarchical property keys (use . as separator)
 - Mix encrypted and unencrypted properties
 - Master password protection
 - No dependencies - runs immediately
@@ -227,8 +240,8 @@ echo.
 
 REM Add properties
 echo Adding properties:
-$exeName -addUnsecured example.properties -key app@@name -value "Example Application"
-$exeName -addSecured example.properties -key app@@secret -value "MySecretValue" -pass Example123Password!
+$exeName -addUnsecured example.properties -key app.name -value "Example Application"
+$exeName -addSecured example.properties -key app.secret -value "MySecretValue" -pass Example123Password!
 echo.
 
 REM Print all
@@ -238,7 +251,7 @@ echo.
 
 REM Get value
 echo Getting encrypted value:
-$exeName -getValue example.properties -key app@@secret -pass Example123Password!
+$exeName -getValue example.properties -key app.secret -pass Example123Password!
 echo.
 
 echo ================================================
@@ -270,8 +283,8 @@ echo ""
 
 # Add properties
 echo "Adding properties:"
-./$exeName -addUnsecured example.properties -key app@@name -value "Example Application"
-./$exeName -addSecured example.properties -key app@@secret -value "MySecretValue" -pass Example123Password!
+./$exeName -addUnsecured example.properties -key app.name -value "Example Application"
+./$exeName -addSecured example.properties -key app.secret -value "MySecretValue" -pass Example123Password!
 echo ""
 
 # Print all
@@ -281,7 +294,7 @@ echo ""
 
 # Get value
 echo "Getting encrypted value:"
-./$exeName -getValue example.properties -key app@@secret -pass Example123Password!
+./$exeName -getValue example.properties -key app.secret -pass Example123Password!
 echo ""
 
 echo "================================================"
@@ -314,6 +327,11 @@ echo "================================================"
     
     # Clean up unzipped folder
     Remove-Item -Recurse -Force $packagePath
+    
+    # Restore original project file
+    Write-Host "Restoring original project configuration..." -ForegroundColor Yellow
+    Move-Item $csprojBackup $csproj -Force
+    Write-Host "[OK] Project restored to library configuration" -ForegroundColor Green
 }
 
 # Publish for specified runtime(s)
@@ -363,7 +381,7 @@ if ($CreateRelease) {
     $ErrorActionPreference = "Continue"
 
     # Check if gh is authenticated
-    $authStatus = gh auth status 2>&1
+    $null = gh auth status 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Host "[ERROR] GitHub CLI is not authenticated. Run: gh auth login" -ForegroundColor Red
         $ErrorActionPreference = $prevErrorAction
@@ -437,6 +455,10 @@ SecuredPropertiesCSharp -getValue config.properties -key mykey -pass YourPasswor
         Write-Host "  URL: $repoUrl/releases/tag/$tag" -ForegroundColor Yellow
     } else {
         Write-Host "[ERROR] Failed to create GitHub release" -ForegroundColor Red
+        # Restore backup on failure
+        if (Test-Path $csprojBackup) {
+            Move-Item $csprojBackup $csproj -Force
+        }
         $ErrorActionPreference = $prevErrorAction
         exit 1
     }

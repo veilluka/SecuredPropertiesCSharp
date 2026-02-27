@@ -34,19 +34,19 @@ dotnet run -- -help
 dotnet run -- -create myconfig.properties -pass MySecurePass123!
 
 # Add encrypted property
-dotnet run -- -addSecured myconfig.properties -key app@@api@@key -value secret123 -pass MySecurePass123!
+dotnet run -- -addSecured myconfig.properties -key app.api.key -value secret123 -pass MySecurePass123!
 
 # Add unencrypted property
-dotnet run -- -addUnsecured myconfig.properties -key app@@name -value MyApp
+dotnet run -- -addUnsecured myconfig.properties -key app.name -value MyApp
 
 # Get property value
-dotnet run -- -getValue myconfig.properties -key app@@api@@key -pass MySecurePass123!
+dotnet run -- -getValue myconfig.properties -key app.api.key -pass MySecurePass123!
 
 # Print all properties
 dotnet run -- -print myconfig.properties
 
 # Delete property
-dotnet run -- -delete myconfig.properties -key app@@api@@key -pass MySecurePass123!
+dotnet run -- -delete myconfig.properties -key app.api.key -pass MySecurePass123!
 
 # Generate random password
 dotnet run -- -generatePassword
@@ -91,16 +91,16 @@ Manage hierarchical keys with encryption flags.
 #### Create a Property
 ```csharp
 var prop = SecureProperty.CreateNewSecureProperty(
-    "app@@database@@host", 
+    "app.database.host", 
     "localhost", 
     encrypted: false);
 ```
 
 #### Work with Keys
 ```csharp
-var key = SecureProperty.CreateKey("app@@database@@host");
+var key = SecureProperty.CreateKey("app.database.host");
 var keyString = SecureProperty.CreateKeyWithSeparator(key);
-var parts = SecureProperty.ParseKey("app@@database@@host");
+var parts = SecureProperty.ParseKey("app.database.host");
 ```
 
 ### SecureProperties
@@ -119,11 +119,11 @@ props.SaveProperties();
 #### Load and Read Properties
 ```csharp
 var props = SecureProperties.OpenSecuredProperties("config.properties");
-string? host = props.GetStringProperty("app@@database@@host");
-bool ssl = props.GetBooleanValue("app@@ssl@@enabled");
+string? host = props.GetStringProperty("app.database.host");
+bool ssl = props.GetBooleanValue("app.ssl.enabled");
 
 // Get all keys under a parent
-var dbProps = props.GetAllProperties("app@@database");
+var dbProps = props.GetAllProperties("app.database");
 
 // Get all labels
 var labels = props.GetAllLabels();
@@ -160,14 +160,14 @@ var masterPassword = new SecureString("YourSecurePassword123!");
 var storage = SecStorage.OpenSecuredStorage("config.properties", masterPassword);
 
 // Add unsecured property
-storage.AddUnsecuredProperty("app@@name", "MyApp");
+storage.AddUnsecuredProperty("app.name", "MyApp");
 
 // Add secured property (automatically encrypted)
-storage.AddSecuredProperty("app@@api@@key", new SecureString("secret-key"));
+storage.AddSecuredProperty("app.api.key", new SecureString("secret-key"));
 
 // Retrieve properties (automatically decrypted if encrypted)
-string appName = storage.GetPropertyStringValue("app@@name");
-SecureString apiKey = storage.GetPropertyValue("app@@api@@key");
+string appName = storage.GetPropertyStringValue("app.name");
+SecureString apiKey = storage.GetPropertyValue("app.api.key");
 
 // List all keys
 var allKeys = storage.GetAllKeys();

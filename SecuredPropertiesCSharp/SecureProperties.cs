@@ -24,10 +24,10 @@ namespace SecuredPropertiesCSharp
     public class SecureProperties
     {
         // Storage constants
-        public const string TEST_STRING = "STORAGE@@WINDOWS_SECURED";
-        public const string MASTER_PASSWORD_WIN_SECURED = "STORAGE@@MASTER_PASSWORD_WINDOWS_SECURED";
-        public const string MASTER_PASSWORD_HASH = "STORAGE@@MASTER_PASSWORD_HASH";
-        public const string ENC_VERSION = "STORAGE@@ENC_VERSION";
+        public const string TEST_STRING = "STORAGE.WINDOWS_SECURED";
+        public const string MASTER_PASSWORD_WIN_SECURED = "STORAGE.MASTER_PASSWORD_WINDOWS_SECURED";
+        public const string MASTER_PASSWORD_HASH = "STORAGE.MASTER_PASSWORD_HASH";
+        public const string ENC_VERSION = "STORAGE.ENC_VERSION";
 
         internal Dictionary<LinkedHashSet<string>, List<SecureProperty>> _map;
         private string? _filePath;
@@ -84,7 +84,7 @@ namespace SecuredPropertiesCSharp
 
             foreach (var k in _map.Keys)
             {
-                if (SecureProperty.CreateKeyWithSeparator(k).Contains("STORAGE@@"))
+                if (SecureProperty.CreateKeyWithSeparator(k).Contains("STORAGE."))
                     continue;
 
                 var keyProperties = _map[k];
@@ -105,7 +105,7 @@ namespace SecuredPropertiesCSharp
 
             foreach (var k in _map.Keys)
             {
-                if (SecureProperty.CreateKeyWithSeparator(k).Contains("STORAGE@@"))
+                if (SecureProperty.CreateKeyWithSeparator(k).Contains("STORAGE."))
                     continue;
 
                 var keyProperties = _map[k];
@@ -118,7 +118,7 @@ namespace SecuredPropertiesCSharp
                         stringBuilder.Append(SecureProperty.CreateKeyWithSeparator(compareWith));
 
                         if (stringBuilder.Length > 0)
-                            stringBuilder.Append("@@");
+                            stringBuilder.Append(".");
 
                         propertyKey.RemoveAll(compareWith);
                         var it = propertyKey.GetEnumerator();
@@ -139,7 +139,7 @@ namespace SecuredPropertiesCSharp
 
             foreach (var k in _map.Keys)
             {
-                if (SecureProperty.CreateKeyWithSeparator(k).Contains("STORAGE@@"))
+                if (SecureProperty.CreateKeyWithSeparator(k).Contains("STORAGE."))
                     continue;
 
                 var stringBuilder = new StringBuilder();
@@ -148,12 +148,12 @@ namespace SecuredPropertiesCSharp
                 for (int i = 0; i < array.Length - 1; i++)
                 {
                     stringBuilder.Append(array[i]);
-                    stringBuilder.Append("@@");
+                    stringBuilder.Append(".");
                 }
 
-                if (stringBuilder.Length > 2)
+                if (stringBuilder.Length > 0)
                 {
-                    stringBuilder.Remove(stringBuilder.Length - 2, 2);
+                    stringBuilder.Remove(stringBuilder.Length - 1, 1);
                 }
 
                 if (stringBuilder.Length > 0)
@@ -171,7 +171,7 @@ namespace SecuredPropertiesCSharp
 
             foreach (var k in _map.Keys)
             {
-                if (SecureProperty.CreateKeyWithSeparator(k).Contains("STORAGE@@"))
+                if (SecureProperty.CreateKeyWithSeparator(k).Contains("STORAGE."))
                     continue;
 
                 retValue.Add(SecureProperty.CreateKeyWithSeparator(k));

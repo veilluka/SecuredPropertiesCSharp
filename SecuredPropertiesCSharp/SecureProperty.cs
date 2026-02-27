@@ -47,7 +47,7 @@ namespace SecuredPropertiesCSharp
         public static string[] ParseKey(string key)
         {
             if (key == null) return Array.Empty<string>();
-            return key.Split("@@");
+            return key.Split(new[] { "." }, StringSplitOptions.None);
         }
 
         public static string CreateKeyWithSeparator(LinkedHashSet<string> key)
@@ -58,12 +58,12 @@ namespace SecuredPropertiesCSharp
             foreach (var item in key)
             {
                 stringBuilder.Append(item);
-                stringBuilder.Append("@@");
+                stringBuilder.Append(".");
             }
             
-            if (stringBuilder.Length > 2)
+            if (stringBuilder.Length > 0)
             {
-                stringBuilder.Remove(stringBuilder.Length - 2, 2);
+                stringBuilder.Remove(stringBuilder.Length - 1, 1);
             }
             
             return stringBuilder.ToString();
@@ -97,12 +97,12 @@ namespace SecuredPropertiesCSharp
             for (int i = 0; i < labelWithKey.Count - 1; i++)
             {
                 stringBuilder.Append(lblWKey[i]);
-                stringBuilder.Append("@@");
+                stringBuilder.Append(".");
             }
             
             if (stringBuilder.Length == 0) return string.Empty;
             
-            stringBuilder.Remove(stringBuilder.Length - 2, 2);
+            stringBuilder.Remove(stringBuilder.Length - 1, 1);
             return stringBuilder.ToString();
         }
 

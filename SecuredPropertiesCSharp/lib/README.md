@@ -44,8 +44,8 @@ var masterPass = new SecureString("MasterPassword123!");
 SecStorage.CreateNewSecureStorage("config.properties", masterPass, true);
 
 var storage = SecStorage.OpenSecuredStorage("config.properties", masterPass);
-storage.AddSecuredProperty("api@@key", new SecureString("my-secret-key"));
-var apiKey = storage.GetPropertyValue("api@@key");
+storage.AddSecuredProperty("api.key", new SecureString("my-secret-key"));
+var apiKey = storage.GetPropertyValue("api.key");
 
 SecStorage.Destroy();
 ```
@@ -65,7 +65,7 @@ SecStorage.Destroy();
 ### SecureProperties
 - **Mid-level API**: Property collection management
 - **File I/O**: Read/write .properties files
-- **Hierarchical keys**: Support for @@ separator
+- **Hierarchical keys**: Support for . separator
 
 ### SecureProperty
 - **Low-level API**: Individual property management
@@ -81,8 +81,8 @@ See `USAGE-EXAMPLE.cs` for complete examples.
 
 ## Requirements
 
-- .NET 8.0 or later
-- Target Framework: net10.0
+- .NET Framework 4.8 or later
+- Target Framework: net48
 
 ## Documentation
 
@@ -103,4 +103,4 @@ The DLL includes XML documentation for IntelliSense support.
 See main project repository for license information.
 
 ---
-Built with .NET 8.0
+Built with .NET Framework 4.8
